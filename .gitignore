@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# Environment Variables (IMPORTANT - Keep secrets private!)
+.env
+.env.local
+.env.*.local
+
+# PureSpectrum Auth Files (Keep secrets private!)
+purespectrum_auth.json
+purespectrum_cookies.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local test files (not needed for deployment)
+test_*.py
+simple_*.py
+working_*.py
+local-bot-config.json
+bot-config.json
