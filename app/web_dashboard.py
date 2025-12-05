@@ -1,8 +1,9 @@
 """
 Web Dashboard for PureSpectrum Survey Monitoring
-Simple HTML interface accessible via web browser
+Live dashboard that fetches data on each request
 """
 from fastapi.responses import HTMLResponse
+from datetime import datetime
 import os
 import aiohttp
 from .scraper import PureSpectrumScraper
@@ -12,431 +13,711 @@ PURESPECTRUM_USERNAME = os.getenv("PURESPECTRUM_USERNAME", "")
 PURESPECTRUM_PASSWORD = os.getenv("PURESPECTRUM_PASSWORD", "")
 
 
+def generate_quota_name(quota):
+    """Generate meaningful quota name from criteria"""
+    criteria = quota.get('criteria', [])
+    if not criteria:
+        return quota.get('quota_title', 'General Quota')
+    
+    parts = []
+    for criterion in criteria:
+        qual_name = criterion.get('qualification_name', '')
+        conditions = criterion.get('condition_names', [])
+        
+        if qual_name == 'Gender' and conditions:
+            parts.append(conditions[0])
+        elif qual_name == 'Age':
+            range_sets = criterion.get('range_sets', [])
+            if range_sets:
+                range = range_sets[0]
+                from_age = range.get('from', '')
+                to_age = range.get('to', '')
+                if from_age and to_age:
+                    parts.append(f"{from_age}-{to_age} yr")
+    
+    return ', '.join(parts) if parts else quota.get('quota_title', 'General Quota')
+
+
 async def dashboard_home():
-    """Main dashboard page"""
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PureSpectrum Survey Dashboard</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+    """Main dashboard page with live data fetching"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PureSpectrum Survey Dashboard</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 0;
+            color: #1e293b;
+        }}
+        
+        .header-bar {{
+            background: #1e293b;
+            color: white;
+            padding: 32px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        
+        .container {{
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }}
+        
+        .header {{
+            text-align: center;
+        }}
+        
+        .header h1 {{
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+        }}
+        
+        .header p {{
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }}
+        
+        .refresh-btn {{
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }}
+        
+        .refresh-btn:hover {{
+            background: rgba(255,255,255,0.3);
+        }}
+        
+        .loading {{
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        
+        .error {{
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc2626;
+        }}
+        
+        .active-surveys-count {{
+            background: white;
+            padding: 24px 32px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            text-align: center;
+        }}
+        
+        .active-surveys-count .label {{
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }}
+        
+        .active-surveys-count .value {{
+            font-size: 36px;
+            font-weight: 700;
+            color: #1e293b;
+        }}
+        
+        .surveys-list {{
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        
+        .survey-row {{
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: grid;
+            grid-template-columns: 2fr 1fr 100px 120px 80px 80px;
+            gap: 20px;
+            align-items: center;
+        }}
+        
+        .survey-row:hover {{
+            background: #f8fafc;
+        }}
+        
+        .survey-row:last-child {{
+            border-bottom: none;
+        }}
+        
+        .survey-row.expanded {{
+            background: #f1f5f9;
+        }}
+        
+        .survey-name {{
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 15px;
+        }}
+        
+        .survey-progress {{
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }}
+        
+        .progress-bar {{
+            width: 100%;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }}
+        
+        .progress-fill {{
+            height: 100%;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            transition: width 0.3s ease;
+        }}
+        
+        .progress-text {{
+            font-size: 12px;
+            color: #64748b;
+        }}
+        
+        .metric {{
+            text-align: right;
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+        }}
+        
+        .metric-label {{
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }}
+        
+        .quota-details {{
+            display: none;
+            grid-column: 1 / -1;
+            padding: 16px 0 0 0;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 16px;
+        }}
+        
+        .survey-row.expanded .quota-details {{
+            display: block;
+        }}
+        
+        .quota-section-title {{
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        
+        .quota-group {{
+            margin-bottom: 20px;
+        }}
+        
+        .quota-group-title {{
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        
+        .quota-table-wrapper {{
+            overflow-x: auto;
+            margin-top: 12px;
+        }}
+        
+        .quota-table {{
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 11px;
+            min-width: 600px;
+        }}
+        
+        .quota-table thead {{
+            background: #f1f5f9;
+        }}
+        
+        .quota-table th {{
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #cbd5e1;
+            white-space: nowrap;
+        }}
+        
+        .quota-table th:not(:first-child) {{
+            text-align: right;
+        }}
+        
+        .quota-table td {{
+            padding: 8px 10px;
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+        }}
+        
+        .quota-table td:not(:first-child) {{
+            text-align: right;
+        }}
+        
+        .quota-table tbody tr:hover {{
+            background: #f8fafc;
+        }}
+        
+        .quota-table tbody tr:last-child td {{
+            border-bottom: none;
+        }}
+        
+        .quota-name-cell {{
+            font-weight: 500;
+            color: #1e293b;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+        
+        .quota-number {{
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            color: #475569;
+            font-size: 11px;
+        }}
+        
+        .quota-progress-cell {{
+            color: #2563eb;
+            font-weight: 600;
+        }}
+        
+        .empty {{
+            background: white;
+            padding: 60px;
+            border-radius: 8px;
+            text-align: center;
+            color: #64748b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        
+        .empty h2 {{
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }}
+        
+        @media (max-width: 1200px) {{
+            .survey-row {{
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }}
             
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 20px;
-            }
+            .metric {{
+                text-align: left;
+            }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .container {{
+                padding: 20px 12px;
+            }}
             
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-            }
+            .header h1 {{
+                font-size: 22px;
+            }}
             
-            .header {
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
+            .active-surveys-count {{
+                padding: 20px 16px;
+            }}
             
-            .header h1 {
-                color: #333;
-                margin-bottom: 10px;
-            }
+            .active-surveys-count .value {{
+                font-size: 28px;
+            }}
             
-            .header p {
-                color: #666;
-            }
+            .survey-row {{
+                padding: 16px 12px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }}
             
-            .controls {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            
-            .btn {
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin-right: 10px;
-                transition: background 0.3s;
-            }
-            
-            .btn:hover {
-                background: #5568d3;
-            }
-            
-            .btn:disabled {
-                background: #ccc;
-                cursor: not-allowed;
-            }
-            
-            .loading {
-                text-align: center;
-                padding: 40px;
-                color: #666;
-            }
-            
-            .survey-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                gap: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .survey-card {
-                background: white;
-                padding: 25px;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                transition: transform 0.2s;
-            }
-            
-            .survey-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            }
-            
-            .survey-card h3 {
-                color: #333;
-                margin-bottom: 15px;
-                font-size: 18px;
-            }
-            
-            .survey-id {
-                color: #667eea;
-                font-weight: bold;
+            .survey-name {{
                 font-size: 14px;
-                margin-bottom: 10px;
-            }
+            }}
             
-            .progress-bar {
-                width: 100%;
-                height: 25px;
-                background: #e0e0e0;
-                border-radius: 12px;
-                overflow: hidden;
-                margin: 10px 0;
-            }
+            .metric {{
+                text-align: left;
+                font-size: 13px;
+            }}
             
-            .progress-fill {
-                height: 100%;
-                background: linear-gradient(90deg, #667eea, #764ba2);
-                transition: width 0.3s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 12px;
-                font-weight: bold;
-            }
+            .metric-label {{
+                font-size: 10px;
+            }}
             
-            .stats {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                margin-top: 15px;
-            }
+            .quota-table-wrapper {{
+                margin: 0 -12px;
+                padding: 0 12px;
+            }}
             
-            .stat {
-                text-align: center;
-                padding: 10px;
-                background: #f5f5f5;
-                border-radius: 5px;
-            }
+            .quota-table {{
+                font-size: 10px;
+                min-width: 500px;
+            }}
             
-            .stat-label {
-                font-size: 12px;
-                color: #666;
-                margin-bottom: 5px;
-            }
+            .quota-table th,
+            .quota-table td {{
+                padding: 6px 8px;
+                font-size: 10px;
+            }}
+        }}
+        
+        @media (max-width: 480px) {{
+            .header-bar {{
+                padding: 24px 0;
+            }}
             
-            .stat-value {
+            .header h1 {{
                 font-size: 18px;
-                font-weight: bold;
-                color: #333;
-            }
+            }}
             
-            .quota-section {
-                background: white;
-                padding: 25px;
-                border-radius: 10px;
-                margin-top: 20px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                display: none;
-            }
-            
-            .quota-section.active {
-                display: block;
-            }
-            
-            .quota-group {
-                margin-bottom: 25px;
-            }
-            
-            .quota-group h4 {
-                color: #333;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #667eea;
-            }
-            
-            .quota-item {
-                padding: 15px;
-                margin-bottom: 10px;
-                background: #f9f9f9;
-                border-radius: 5px;
-                border-left: 4px solid #667eea;
-            }
-            
-            .quota-name {
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 8px;
-            }
-            
-            .quota-progress {
-                font-size: 14px;
-                color: #666;
-                margin-top: 5px;
-            }
-            
-            .error {
-                background: #fee;
-                color: #c33;
-                padding: 15px;
-                border-radius: 5px;
-                margin: 20px 0;
-            }
-        </style>
-    </head>
-    <body>
+            .quota-table {{
+                min-width: 400px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="header-bar">
         <div class="container">
             <div class="header">
-                <h1>📊 PureSpectrum Survey Dashboard</h1>
-                <p>Monitor your active surveys, check status, and view detailed quota breakdowns</p>
+                <h1>PureSpectrum Survey Dashboard</h1>
+                <p>Last updated: <span id="last-updated">{timestamp}</span></p>
+                <button class="refresh-btn" onclick="loadSurveys()">🔄 Refresh</button>
             </div>
-            
-            <div class="controls">
-                <button class="btn" onclick="loadSurveys()">🔄 Refresh Surveys</button>
-                <button class="btn" onclick="clearData()">Clear</button>
-            </div>
-            
-            <div id="loading" class="loading" style="display: none;">
-                Loading surveys...
-            </div>
-            
-            <div id="error" class="error" style="display: none;"></div>
-            
-            <div id="surveys" class="survey-grid"></div>
-            
-            <div id="quotas" class="quota-section"></div>
         </div>
+    </div>
+    <div class="container">
+        <div id="loading" class="loading" style="display: none;">
+            Loading surveys...
+        </div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="dashboard-content"></div>
+    </div>
+    
+    <script>
+        function formatLOI(loi) {{
+            if (loi && loi > 0) {{
+                return loi.toFixed(1) + " min";
+            }}
+            return "N/A";
+        }}
         
-        <script>
-            async function loadSurveys() {
-                const loading = document.getElementById('loading');
-                const error = document.getElementById('error');
-                const surveysDiv = document.getElementById('surveys');
-                const quotasDiv = document.getElementById('quotas');
-                
-                loading.style.display = 'block';
-                error.style.display = 'none';
-                surveysDiv.innerHTML = '';
-                quotasDiv.innerHTML = '';
-                quotasDiv.classList.remove('active');
-                
-                try {
-                    const response = await fetch('/api/surveys');
-                    if (!response.ok) throw new Error('Failed to load surveys');
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-                    
-                    if (data.surveys && Object.keys(data.surveys).length === 0) {
-                        surveysDiv.innerHTML = '<div class="loading">No active surveys found</div>';
-                        loading.style.display = 'none';
-                        return;
-                    }
-                    
-                    surveysDiv.innerHTML = '';
-                    
-                    for (const [surveyId, survey] of Object.entries(data.surveys)) {
-                        const progress = survey.target > 0 ? (survey.completes / survey.target * 100) : 0;
-                        const card = document.createElement('div');
-                        card.className = 'survey-card';
-                        card.innerHTML = `
-                            <div class="survey-id">Survey ID: ${surveyId}</div>
-                            <h3>${survey.title || 'Untitled Survey'}</h3>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${progress}%">
-                                    ${progress.toFixed(1)}%
-                                </div>
-                            </div>
-                            <div class="stats">
-                                <div class="stat">
-                                    <div class="stat-label">Status</div>
-                                    <div class="stat-value">${survey.status || 'Unknown'}</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-label">Progress</div>
-                                    <div class="stat-value">${survey.completes}/${survey.target}</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-label">CPI</div>
-                                    <div class="stat-value">$${survey.cpi?.toFixed(2) || '0.00'}</div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-label">Cost</div>
-                                    <div class="stat-value">$${survey.currentCost?.toFixed(2) || '0.00'}</div>
-                                </div>
-                            </div>
-                            <button class="btn" onclick="loadQuotas('${surveyId}')" style="margin-top: 15px; width: 100%;">
-                                View Quotas
-                            </button>
-                        `;
-                        surveysDiv.appendChild(card);
-                    }
-                    
-                } catch (err) {
-                    error.textContent = 'Error: ' + err.message;
-                    error.style.display = 'block';
-                } finally {
-                    loading.style.display = 'none';
-                }
-            }
+        function formatIR(incidence) {{
+            if (!incidence || incidence <= 0) {{
+                return "N/A";
+            }}
+            if (incidence > 1 && incidence <= 100) {{
+                return incidence.toFixed(1) + "%";
+            }} else if (incidence > 100) {{
+                return (incidence / 100).toFixed(1) + "%";
+            }} else {{
+                return (incidence * 100).toFixed(1) + "%";
+            }}
+        }}
+        
+        function generateQuotaName(quota) {{
+            const criteria = quota.criteria || [];
+            if (criteria.length === 0) {{
+                return quota.quota_title || 'General Quota';
+            }}
             
-            async function loadQuotas(surveyId) {
-                const quotasDiv = document.getElementById('quotas');
-                const loading = document.getElementById('loading');
+            const parts = [];
+            criteria.forEach(criterion => {{
+                const qualName = criterion.qualification_name || '';
+                const conditions = criterion.condition_names || [];
                 
-                loading.style.display = 'block';
-                quotasDiv.innerHTML = '';
-                quotasDiv.classList.add('active');
+                if (qualName === 'Gender' && conditions.length > 0) {{
+                    parts.push(conditions[0]);
+                }} else if (qualName === 'Age') {{
+                    const rangeSets = criterion.range_sets || [];
+                    if (rangeSets.length > 0) {{
+                        const range = rangeSets[0];
+                        const fromAge = range.from || '';
+                        const toAge = range.to || '';
+                        if (fromAge && toAge) {{
+                            parts.push(fromAge + '-' + toAge + ' yr');
+                        }}
+                    }}
+                }}
+            }});
+            
+            return parts.length > 0 ? parts.join(', ') : (quota.quota_title || 'General Quota');
+        }}
+        
+        function toggleQuota(surveyId, event) {{
+            event.stopPropagation();
+            const row = event.currentTarget || event.target.closest('.survey-row');
+            const quotaDetails = document.getElementById('quota-' + surveyId);
+            
+            if (row.classList.contains('expanded')) {{
+                row.classList.remove('expanded');
+            }} else {{
+                // Close all other expanded rows
+                document.querySelectorAll('.survey-row.expanded').forEach(r => {{
+                    r.classList.remove('expanded');
+                }});
+                row.classList.add('expanded');
                 
-                try {
-                    const response = await fetch(`/api/quotas/${surveyId}`);
-                    if (!response.ok) throw new Error('Failed to load quotas');
+                // Load quotas if not already loaded
+                if (quotaDetails && quotaDetails.innerHTML.trim() === '') {{
+                    loadQuotas(surveyId);
+                }}
+            }}
+        }}
+        
+        async function loadQuotas(surveyId) {{
+            const quotaDetails = document.getElementById('quota-' + surveyId);
+            if (!quotaDetails) return;
+            
+            quotaDetails.innerHTML = '<div class="quota-section-title">Loading quotas...</div>';
+            
+            try {{
+                const response = await fetch(`/api/quotas/${{surveyId}}`);
+                if (!response.ok) throw new Error('Failed to load quotas');
+                
+                const data = await response.json();
+                if (data.error) {{
+                    throw new Error(data.error);
+                }}
+                
+                const quotas = data.quotas || [];
+                if (quotas.length === 0) {{
+                    quotaDetails.innerHTML = '<div class="quota-section-title" style="color: #94a3b8;">No quota data available</div>';
+                    return;
+                }}
+                
+                let html = '<div class="quota-section-title">Quota Details</div>';
+                
+                // Group quotas
+                const grouped = {{}};
+                quotas.forEach(quota => {{
+                    const group = quota.group_key || 'General';
+                    if (!grouped[group]) grouped[group] = [];
+                    grouped[group].push(quota);
+                }});
+                
+                for (const [groupName, groupQuotas] of Object.entries(grouped)) {{
+                    html += `<div class="quota-group">`;
+                    html += `<div class="quota-group-title">${{groupName}}</div>`;
+                    html += `
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+`;
                     
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-                    
-                    quotasDiv.innerHTML = `<h3>Quota Details for Survey ${surveyId}</h3>`;
-                    
-                    // Group quotas
-                    const grouped = {};
-                    data.quotas.forEach(quota => {
-                        const group = quota.group_key || 'General';
-                        if (!grouped[group]) grouped[group] = [];
-                        grouped[group].push(quota);
-                    });
-                    
-                    for (const [groupName, quotas] of Object.entries(grouped)) {
-                        const groupDiv = document.createElement('div');
-                        groupDiv.className = 'quota-group';
-                        groupDiv.innerHTML = `<h4>${groupName}</h4>`;
+                    groupQuotas.forEach(quota => {{
+                        const name = generateQuotaName(quota);
+                        const fielded = quota.achieved || 0;
+                        const goal = quota.required_count || 0;
+                        const quotaProgress = goal > 0 ? (fielded / goal * 100) : 0;
+                        const currentTarget = quota.current_target || goal;
+                        const currentlyOpen = quota.currently_open || 0;
+                        const inProgress = quota.in_progress || 0;
                         
-                        quotas.forEach(quota => {
-                            const name = generateQuotaName(quota);
-                            const fielded = quota.achieved || 0;
-                            const goal = quota.required_count || 0;
-                            const progress = goal > 0 ? (fielded / goal * 100) : 0;
-                            
-                            const quotaItem = document.createElement('div');
-                            quotaItem.className = 'quota-item';
-                            quotaItem.innerHTML = `
-                                <div class="quota-name">${name}</div>
+                        html += `
+                                <tr>
+                                    <td class="quota-name-cell" title="${{name}}">${{name}}</td>
+                                    <td class="quota-number">${{fielded.toLocaleString()}}</td>
+                                    <td class="quota-number">${{goal.toLocaleString()}}</td>
+                                    <td class="quota-number quota-progress-cell">${{quotaProgress.toFixed(1)}}%</td>
+                                    <td class="quota-number">${{currentTarget.toLocaleString()}}</td>
+                                    <td class="quota-number">${{currentlyOpen.toLocaleString()}}</td>
+                                    <td class="quota-number">${{inProgress.toLocaleString()}}</td>
+                                </tr>
+`;
+                    }});
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    </div>
+`;
+                    html += '</div>';
+                }}
+                
+                quotaDetails.innerHTML = html;
+            }} catch (err) {{
+                quotaDetails.innerHTML = `<div class="quota-section-title" style="color: #dc2626;">Error loading quotas: ${{err.message}}</div>`;
+            }}
+        }}
+        
+        async function loadSurveys() {{
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const content = document.getElementById('dashboard-content');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            content.innerHTML = '';
+            
+            // Update timestamp
+            document.getElementById('last-updated').textContent = new Date().toLocaleString();
+            
+            try {{
+                const response = await fetch('/api/surveys');
+                if (!response.ok) throw new Error('Failed to load surveys');
+                
+                const data = await response.json();
+                if (data.error) {{
+                    throw new Error(data.error);
+                }}
+                
+                const surveys = data.surveys || {{}};
+                const surveyIds = Object.keys(surveys);
+                
+                if (surveyIds.length === 0) {{
+                    content.innerHTML = `
+                        <div class="empty">
+                            <h2>No active surveys found</h2>
+                        </div>
+                    `;
+                    loading.style.display = 'none';
+                    return;
+                }}
+                
+                // Active surveys count
+                let html = `
+                    <div class="active-surveys-count">
+                        <div class="label">Active Surveys</div>
+                        <div class="value">${{surveyIds.length}}</div>
+                    </div>
+                    <div class="surveys-list">
+                `;
+                
+                // Survey rows
+                surveyIds.forEach(surveyId => {{
+                    const survey = surveys[surveyId];
+                    const target = survey.target || 0;
+                    const completes = survey.completes || 0;
+                    const progress = target > 0 ? (completes / target * 100) : 0;
+                    const title = survey.title || 'Untitled Survey';
+                    const cpi = survey.cpi || 0;
+                    const cost = survey.currentCost || 0;
+                    
+                    // Get LOI and IR from raw data if needed
+                    const rawData = survey._raw || {{}};
+                    const loi = survey.loi || rawData.expected_loi || rawData.loi || rawData.length_of_interview || 0;
+                    const incidence = survey.incidence || rawData.expected_ir || rawData.current_incidence || rawData.incidence_rate || 0;
+                    
+                    html += `
+                        <div class="survey-row" onclick="toggleQuota('${{surveyId}}', event)">
+                            <div class="survey-name">${{title}}</div>
+                            <div class="survey-progress">
+                                <div class="progress-text">${{completes.toLocaleString()}} / ${{target.toLocaleString()}} (${{progress.toFixed(1)}}%)</div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%">
-                                        ${progress.toFixed(1)}%
-                                    </div>
+                                    <div class="progress-fill" style="width: ${{Math.min(progress, 100)}}%"></div>
                                 </div>
-                                <div class="quota-progress">
-                                    Fielded: ${fielded}/${goal} | Target: ${quota.current_target || goal} | 
-                                    Open: ${quota.currently_open || 0} | In Progress: ${quota.in_progress || 0}
-                                </div>
-                            `;
-                            groupDiv.appendChild(quotaItem);
-                        });
-                        
-                        quotasDiv.appendChild(groupDiv);
-                    }
-                    
-                    // Scroll to quotas
-                    quotasDiv.scrollIntoView({ behavior: 'smooth' });
-                    
-                } catch (err) {
-                    quotasDiv.innerHTML = `<div class="error">Error loading quotas: ${err.message}</div>`;
-                } finally {
-                    loading.style.display = 'none';
-                }
-            }
-            
-            function generateQuotaName(quota) {
-                const criteria = quota.criteria || [];
-                if (criteria.length === 0) {
-                    return quota.quota_title || 'General Quota';
-                }
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">CPI</div>
+                                <div>$${{cpi.toFixed(2)}}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Cost</div>
+                                <div>$${{cost.toLocaleString(undefined, {{minimumFractionDigits: 2, maximumFractionDigits: 2}})}}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">LOI</div>
+                                <div>${{formatLOI(loi)}}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">IR</div>
+                                <div>${{formatIR(incidence)}}</div>
+                            </div>
+                            <div class="quota-details" id="quota-${{surveyId}}"></div>
+                        </div>
+                    `;
+                }});
                 
-                const parts = [];
-                criteria.forEach(criterion => {
-                    const qualName = criterion.qualification_name || '';
-                    const conditions = criterion.condition_names || [];
-                    
-                    if (qualName === 'Gender' && conditions.length > 0) {
-                        parts.push(conditions[0]);
-                    } else if (qualName === 'Age') {
-                        const rangeSets = criterion.range_sets || [];
-                        if (rangeSets.length > 0) {
-                            const range = rangeSets[0];
-                            const fromAge = range.from || '';
-                            const toAge = range.to || '';
-                            if (fromAge && toAge) {
-                                parts.push(`${fromAge}-${toAge} yr`);
-                            }
-                        }
-                    }
-                });
+                html += '</div>';
+                content.innerHTML = html;
                 
-                return parts.length > 0 ? parts.join(', ') : (quota.quota_title || 'General Quota');
-            }
-            
-            function clearData() {
-                document.getElementById('surveys').innerHTML = '';
-                document.getElementById('quotas').innerHTML = '';
-                document.getElementById('quotas').classList.remove('active');
-                document.getElementById('error').style.display = 'none';
-            }
-            
-            // Load surveys on page load
-            window.addEventListener('load', () => {
-                loadSurveys();
-            });
-        </script>
-    </body>
-    </html>
-    """
+            }} catch (err) {{
+                error.textContent = 'Error: ' + err.message;
+                error.style.display = 'block';
+            }} finally {{
+                loading.style.display = 'none';
+            }}
+        }}
+        
+        // Load surveys on page load
+        window.addEventListener('load', () => {{
+            loadSurveys();
+        }});
+    </script>
+</body>
+</html>
+"""
     return HTMLResponse(content=html_content)
 
 
@@ -476,4 +757,3 @@ async def get_quotas(survey_id: str):
             return {"quotas": quotas}
     except Exception as e:
         return {"error": str(e)}
-
