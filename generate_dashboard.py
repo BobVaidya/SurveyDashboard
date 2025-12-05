@@ -251,59 +251,66 @@ def generate_html(surveys, quotas_data):
         }}
         
         .quota-group {{
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }}
         
         .quota-group-title {{
             font-size: 12px;
             font-weight: 600;
             color: #64748b;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             padding-bottom: 6px;
             border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }}
         
-        .quota-item {{
-            padding: 10px 12px;
-            margin-bottom: 8px;
+        .quota-table {{
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            border-radius: 4px;
-            border-left: 2px solid #2563eb;
-        }}
-        
-        .quota-name {{
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 6px;
+            border-radius: 6px;
+            overflow: hidden;
             font-size: 12px;
         }}
         
-        .quota-progress {{
+        .quota-table thead {{
+            background: #f8fafc;
+        }}
+        
+        .quota-table th {{
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
             font-size: 11px;
-            color: #64748b;
-            margin-top: 6px;
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
         }}
         
-        .quota-progress span {{
-            display: inline-block;
+        .quota-table td {{
+            padding: 10px 12px;
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
         }}
         
-        .quota-progress-bar {{
-            width: 100%;
-            height: 18px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin: 6px 0;
+        .quota-table tbody tr:hover {{
+            background: #f8fafc;
         }}
         
-        .quota-progress-fill {{
-            height: 100%;
-            background: #2563eb;
-            transition: width 0.3s ease;
+        .quota-table tbody tr:last-child td {{
+            border-bottom: none;
+        }}
+        
+        .quota-name-cell {{
+            font-weight: 600;
+            color: #1e293b;
+        }}
+        
+        .quota-number {{
+            font-family: 'Courier New', monospace;
+            color: #475569;
         }}
         
         .empty {{
@@ -434,6 +441,21 @@ def generate_html(surveys, quotas_data):
                 for group_name, group_quotas in grouped.items():
                     html += f'<div class="quota-group">'
                     html += f'<div class="quota-group-title">{group_name}</div>'
+                    html += '''
+                    <table class="quota-table">
+                        <thead>
+                            <tr>
+                                <th>Quota Name</th>
+                                <th style="text-align: right;">Fielded</th>
+                                <th style="text-align: right;">Goal</th>
+                                <th style="text-align: right;">Progress</th>
+                                <th style="text-align: right;">Target</th>
+                                <th style="text-align: right;">Open</th>
+                                <th style="text-align: right;">In Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+'''
                     
                     for quota in group_quotas:
                         name = generate_quota_name(quota)
@@ -445,20 +467,21 @@ def generate_html(surveys, quotas_data):
                         in_progress = quota.get('in_progress', 0)
                         
                         html += f"""
-                        <div class="quota-item">
-                            <div class="quota-name">{name}</div>
-                            <div class="quota-progress-bar">
-                                <div class="quota-progress-fill" style="width: {min(quota_progress, 100)}%"></div>
-                            </div>
-                            <div class="quota-progress">
-                                <span><strong>Fielded:</strong> {fielded:,}/{goal:,} ({quota_progress:.1f}%)</span>
-                                <span><strong>Target:</strong> {current_target:,}</span>
-                                <span><strong>Open:</strong> {currently_open:,}</span>
-                                <span><strong>In Progress:</strong> {in_progress:,}</span>
-                            </div>
-                        </div>
+                            <tr>
+                                <td class="quota-name-cell">{name}</td>
+                                <td class="quota-number" style="text-align: right;">{fielded:,}</td>
+                                <td class="quota-number" style="text-align: right;">{goal:,}</td>
+                                <td class="quota-number" style="text-align: right;">{quota_progress:.1f}%</td>
+                                <td class="quota-number" style="text-align: right;">{current_target:,}</td>
+                                <td class="quota-number" style="text-align: right;">{currently_open:,}</td>
+                                <td class="quota-number" style="text-align: right;">{in_progress:,}</td>
+                            </tr>
 """
                     
+                    html += '''
+                        </tbody>
+                    </table>
+'''
                     html += '</div>'
             else:
                 html += '<div class="quota-section-title" style="color: #94a3b8;">No quota data available</div>'
