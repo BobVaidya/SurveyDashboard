@@ -191,34 +191,48 @@
             letter-spacing: 0.5px;
         }
         
+        .quota-table-wrapper {
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        
         .quota-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 6px;
-            overflow: hidden;
-            font-size: 12px;
+            font-size: 11px;
+            min-width: 600px;
         }
         
         .quota-table thead {
-            background: #f8fafc;
+            background: #f1f5f9;
         }
         
         .quota-table th {
-            padding: 10px 12px;
+            padding: 8px 10px;
             text-align: left;
             font-weight: 600;
             color: #475569;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
+            white-space: nowrap;
+        }
+        
+        .quota-table th:not(:first-child) {
+            text-align: right;
         }
         
         .quota-table td {
-            padding: 10px 12px;
+            padding: 8px 10px;
             color: #1e293b;
             border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+        }
+        
+        .quota-table td:not(:first-child) {
+            text-align: right;
         }
         
         .quota-table tbody tr:hover {
@@ -230,13 +244,23 @@
         }
         
         .quota-name-cell {
-            font-weight: 600;
+            font-weight: 500;
             color: #1e293b;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .quota-number {
-            font-family: 'Courier New', monospace;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
             color: #475569;
+            font-size: 11px;
+        }
+        
+        .quota-progress-cell {
+            color: #2563eb;
+            font-weight: 600;
         }
         
         .empty {
@@ -264,6 +288,73 @@
                 text-align: left;
             }
         }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 12px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .active-surveys-count {
+                padding: 20px 16px;
+            }
+            
+            .active-surveys-count .value {
+                font-size: 28px;
+            }
+            
+            .survey-row {
+                padding: 16px 12px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .survey-name {
+                font-size: 14px;
+            }
+            
+            .metric {
+                text-align: left;
+                font-size: 13px;
+            }
+            
+            .metric-label {
+                font-size: 10px;
+            }
+            
+            .quota-table-wrapper {
+                margin: 0 -12px;
+                padding: 0 12px;
+            }
+            
+            .quota-table {
+                font-size: 10px;
+                min-width: 500px;
+            }
+            
+            .quota-table th,
+            .quota-table td {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-bar {
+                padding: 24px 0;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .quota-table {
+                min-width: 400px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -271,7 +362,7 @@
         <div class="container">
             <div class="header">
                 <h1>PureSpectrum Survey Dashboard</h1>
-                <p>Last updated: 2025-12-05 16:15:45</p>
+                <p>Last updated: 2025-12-05 16:35:08</p>
             </div>
         </div>
     </div>
@@ -285,18 +376,18 @@
             <div class="survey-row" onclick="toggleQuota('45951950', event)">
                 <div class="survey-name">Coles Tracker Project RB Wave 2 Week 7</div>
                 <div class="survey-progress">
-                    <div class="progress-text">31 / 500 (6.2%)</div>
+                    <div class="progress-text">35 / 500 (7.0%)</div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 6.2%"></div>
+                        <div class="progress-fill" style="width: 7.000000000000001%"></div>
                     </div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">CPI</div>
-                    <div>$3.26</div>
+                    <div>$3.29</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">Cost</div>
-                    <div>$101.00</div>
+                    <div>$115.00</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">LOI</div>
@@ -308,179 +399,183 @@
                 </div>
                 <div class="quota-details" id="quota-45951950">
 <div class="quota-section-title">Quota Details</div><div class="quota-group"><div class="quota-group-title">Children</div>
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                            <tr>
-                                <td class="quota-name-cell"></td>
-                                <td class="quota-number" style="text-align: right;">20</td>
-                                <td class="quota-number" style="text-align: right;">310</td>
-                                <td class="quota-number" style="text-align: right;">6.5%</td>
-                                <td class="quota-number" style="text-align: right;">316</td>
-                                <td class="quota-number" style="text-align: right;">296</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title=""></td>
+                                    <td class="quota-number">24</td>
+                                    <td class="quota-number">310</td>
+                                    <td class="quota-number quota-progress-cell">7.7%</td>
+                                    <td class="quota-number">316</td>
+                                    <td class="quota-number">292</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell"></td>
-                                <td class="quota-number" style="text-align: right;">12</td>
-                                <td class="quota-number" style="text-align: right;">190</td>
-                                <td class="quota-number" style="text-align: right;">6.3%</td>
-                                <td class="quota-number" style="text-align: right;">194</td>
-                                <td class="quota-number" style="text-align: right;">182</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title=""></td>
+                                    <td class="quota-number">12</td>
+                                    <td class="quota-number">190</td>
+                                    <td class="quota-number quota-progress-cell">6.3%</td>
+                                    <td class="quota-number">194</td>
+                                    <td class="quota-number">182</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 </div><div class="quota-group"><div class="quota-group-title">Nested</div>
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 60-69 yr</td>
-                                <td class="quota-number" style="text-align: right;">10</td>
-                                <td class="quota-number" style="text-align: right;">37</td>
-                                <td class="quota-number" style="text-align: right;">27.0%</td>
-                                <td class="quota-number" style="text-align: right;">37</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 60-69 yr">Male, 60-69 yr</td>
+                                    <td class="quota-number">14</td>
+                                    <td class="quota-number">37</td>
+                                    <td class="quota-number quota-progress-cell">37.8%</td>
+                                    <td class="quota-number">37</td>
+                                    <td class="quota-number">23</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 50-59 yr</td>
-                                <td class="quota-number" style="text-align: right;">3</td>
-                                <td class="quota-number" style="text-align: right;">47</td>
-                                <td class="quota-number" style="text-align: right;">6.4%</td>
-                                <td class="quota-number" style="text-align: right;">47</td>
-                                <td class="quota-number" style="text-align: right;">44</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 50-59 yr">Male, 50-59 yr</td>
+                                    <td class="quota-number">3</td>
+                                    <td class="quota-number">47</td>
+                                    <td class="quota-number quota-progress-cell">6.4%</td>
+                                    <td class="quota-number">47</td>
+                                    <td class="quota-number">44</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">3</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">5.8%</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">49</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 40-49 yr">Male, 40-49 yr</td>
+                                    <td class="quota-number">3</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number quota-progress-cell">5.8%</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">49</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">9</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">17.3%</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">43</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 30-39 yr">Male, 30-39 yr</td>
+                                    <td class="quota-number">9</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number quota-progress-cell">17.3%</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">43</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 25-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 25-29 yr">Male, 25-29 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 18-24 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">37</td>
-                                <td class="quota-number" style="text-align: right;">2.7%</td>
-                                <td class="quota-number" style="text-align: right;">37</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 18-24 yr">Male, 18-24 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">37</td>
+                                    <td class="quota-number quota-progress-cell">2.7%</td>
+                                    <td class="quota-number">37</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 60-69 yr</td>
-                                <td class="quota-number" style="text-align: right;">4</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">11.1%</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">32</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 60-69 yr">Female, 60-69 yr</td>
+                                    <td class="quota-number">4</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number quota-progress-cell">11.1%</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number">32</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 50-59 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">47</td>
-                                <td class="quota-number" style="text-align: right;">2.1%</td>
-                                <td class="quota-number" style="text-align: right;">47</td>
-                                <td class="quota-number" style="text-align: right;">46</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 50-59 yr">Female, 50-59 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">47</td>
+                                    <td class="quota-number quota-progress-cell">2.1%</td>
+                                    <td class="quota-number">47</td>
+                                    <td class="quota-number">46</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 40-49 yr">Female, 40-49 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">52</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 30-39 yr">Female, 30-39 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 25-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 25-29 yr">Female, 25-29 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 18-24 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">36</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 18-24 yr">Female, 18-24 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number">36</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 </div>
                 </div>
             </div>
@@ -488,18 +583,18 @@
             <div class="survey-row" onclick="toggleQuota('45951118', event)">
                 <div class="survey-name">BWS Tracker wave 263 DANS</div>
                 <div class="survey-progress">
-                    <div class="progress-text">14 / 200 (7.0%)</div>
+                    <div class="progress-text">17 / 200 (8.5%)</div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 7.000000000000001%"></div>
+                        <div class="progress-fill" style="width: 8.5%"></div>
                     </div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">CPI</div>
-                    <div>$3.50</div>
+                    <div>$3.47</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">Cost</div>
-                    <div>$49.00</div>
+                    <div>$59.00</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">LOI</div>
@@ -511,102 +606,104 @@
                 </div>
                 <div class="quota-details" id="quota-45951118">
 <div class="quota-section-title">Quota Details</div><div class="quota-group"><div class="quota-group-title">Nested</div>
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 50-74 yr</td>
-                                <td class="quota-number" style="text-align: right;">3</td>
-                                <td class="quota-number" style="text-align: right;">29</td>
-                                <td class="quota-number" style="text-align: right;">10.3%</td>
-                                <td class="quota-number" style="text-align: right;">29</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 50-74 yr">Male, 50-74 yr</td>
+                                    <td class="quota-number">4</td>
+                                    <td class="quota-number">29</td>
+                                    <td class="quota-number quota-progress-cell">13.8%</td>
+                                    <td class="quota-number">29</td>
+                                    <td class="quota-number">25</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">4.5%</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">21</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 40-49 yr">Male, 40-49 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number quota-progress-cell">4.5%</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number">21</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">4.5%</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">21</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 30-39 yr">Male, 30-39 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number quota-progress-cell">4.5%</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number">21</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 18-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 18-29 yr">Male, 18-29 yr</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">27</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">27</td>
+                                    <td class="quota-number">27</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 50-74 yr</td>
-                                <td class="quota-number" style="text-align: right;">5</td>
-                                <td class="quota-number" style="text-align: right;">29</td>
-                                <td class="quota-number" style="text-align: right;">17.2%</td>
-                                <td class="quota-number" style="text-align: right;">29</td>
-                                <td class="quota-number" style="text-align: right;">24</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 50-74 yr">Female, 50-74 yr</td>
+                                    <td class="quota-number">6</td>
+                                    <td class="quota-number">29</td>
+                                    <td class="quota-number quota-progress-cell">20.7%</td>
+                                    <td class="quota-number">29</td>
+                                    <td class="quota-number">23</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 40-49 yr">Female, 40-49 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number quota-progress-cell">4.5%</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number">21</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">3</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">13.6%</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">19</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 30-39 yr">Female, 30-39 yr</td>
+                                    <td class="quota-number">3</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number quota-progress-cell">13.6%</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number">19</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 18-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">3.7%</td>
-                                <td class="quota-number" style="text-align: right;">27</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 18-29 yr">Female, 18-29 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">27</td>
+                                    <td class="quota-number quota-progress-cell">3.7%</td>
+                                    <td class="quota-number">27</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 </div>
                 </div>
             </div>
@@ -614,18 +711,18 @@
             <div class="survey-row" onclick="toggleQuota('45923280', event)">
                 <div class="survey-name">KFC Tracker W7</div>
                 <div class="survey-progress">
-                    <div class="progress-text">78 / 400 (19.5%)</div>
+                    <div class="progress-text">83 / 400 (20.8%)</div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 19.5%"></div>
+                        <div class="progress-fill" style="width: 20.75%"></div>
                     </div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">CPI</div>
-                    <div>$3.87</div>
+                    <div>$3.92</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">Cost</div>
-                    <div>$302.00</div>
+                    <div>$325.00</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">LOI</div>
@@ -637,102 +734,104 @@
                 </div>
                 <div class="quota-details" id="quota-45923280">
 <div class="quota-section-title">Quota Details</div><div class="quota-group"><div class="quota-group-title">Nested</div>
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                            <tr>
-                                <td class="quota-name-cell">50-65 yr, Male</td>
-                                <td class="quota-number" style="text-align: right;">32</td>
-                                <td class="quota-number" style="text-align: right;">60</td>
-                                <td class="quota-number" style="text-align: right;">53.3%</td>
-                                <td class="quota-number" style="text-align: right;">60</td>
-                                <td class="quota-number" style="text-align: right;">28</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="50-65 yr, Male">50-65 yr, Male</td>
+                                    <td class="quota-number">32</td>
+                                    <td class="quota-number">60</td>
+                                    <td class="quota-number quota-progress-cell">53.3%</td>
+                                    <td class="quota-number">60</td>
+                                    <td class="quota-number">28</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">50-65 yr, Female</td>
-                                <td class="quota-number" style="text-align: right;">7</td>
-                                <td class="quota-number" style="text-align: right;">60</td>
-                                <td class="quota-number" style="text-align: right;">11.7%</td>
-                                <td class="quota-number" style="text-align: right;">60</td>
-                                <td class="quota-number" style="text-align: right;">53</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="50-65 yr, Female">50-65 yr, Female</td>
+                                    <td class="quota-number">8</td>
+                                    <td class="quota-number">60</td>
+                                    <td class="quota-number quota-progress-cell">13.3%</td>
+                                    <td class="quota-number">60</td>
+                                    <td class="quota-number">52</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">40-49 yr, Male</td>
-                                <td class="quota-number" style="text-align: right;">9</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">21.4%</td>
-                                <td class="quota-number" style="text-align: right;">44</td>
-                                <td class="quota-number" style="text-align: right;">35</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="40-49 yr, Male">40-49 yr, Male</td>
+                                    <td class="quota-number">9</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number quota-progress-cell">21.4%</td>
+                                    <td class="quota-number">44</td>
+                                    <td class="quota-number">35</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">40-49 yr, Female</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">0.0%</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="40-49 yr, Female">40-49 yr, Female</td>
+                                    <td class="quota-number">0</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number quota-progress-cell">0.0%</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">30-39 yr, Male</td>
-                                <td class="quota-number" style="text-align: right;">14</td>
-                                <td class="quota-number" style="text-align: right;">44</td>
-                                <td class="quota-number" style="text-align: right;">31.8%</td>
-                                <td class="quota-number" style="text-align: right;">46</td>
-                                <td class="quota-number" style="text-align: right;">32</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="30-39 yr, Male">30-39 yr, Male</td>
+                                    <td class="quota-number">14</td>
+                                    <td class="quota-number">44</td>
+                                    <td class="quota-number quota-progress-cell">31.8%</td>
+                                    <td class="quota-number">46</td>
+                                    <td class="quota-number">32</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">30-39 yr, Female</td>
-                                <td class="quota-number" style="text-align: right;">2</td>
-                                <td class="quota-number" style="text-align: right;">44</td>
-                                <td class="quota-number" style="text-align: right;">4.5%</td>
-                                <td class="quota-number" style="text-align: right;">44</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="30-39 yr, Female">30-39 yr, Female</td>
+                                    <td class="quota-number">2</td>
+                                    <td class="quota-number">44</td>
+                                    <td class="quota-number quota-progress-cell">4.5%</td>
+                                    <td class="quota-number">44</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">18-29 yr, Male</td>
-                                <td class="quota-number" style="text-align: right;">6</td>
-                                <td class="quota-number" style="text-align: right;">54</td>
-                                <td class="quota-number" style="text-align: right;">11.1%</td>
-                                <td class="quota-number" style="text-align: right;">54</td>
-                                <td class="quota-number" style="text-align: right;">48</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="18-29 yr, Male">18-29 yr, Male</td>
+                                    <td class="quota-number">6</td>
+                                    <td class="quota-number">54</td>
+                                    <td class="quota-number quota-progress-cell">11.1%</td>
+                                    <td class="quota-number">54</td>
+                                    <td class="quota-number">48</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">18-29 yr, Female</td>
-                                <td class="quota-number" style="text-align: right;">8</td>
-                                <td class="quota-number" style="text-align: right;">54</td>
-                                <td class="quota-number" style="text-align: right;">14.8%</td>
-                                <td class="quota-number" style="text-align: right;">54</td>
-                                <td class="quota-number" style="text-align: right;">46</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="18-29 yr, Female">18-29 yr, Female</td>
+                                    <td class="quota-number">13</td>
+                                    <td class="quota-number">54</td>
+                                    <td class="quota-number quota-progress-cell">24.1%</td>
+                                    <td class="quota-number">54</td>
+                                    <td class="quota-number">41</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 </div>
                 </div>
             </div>
@@ -763,122 +862,124 @@
                 </div>
                 <div class="quota-details" id="quota-45886288">
 <div class="quota-section-title">Quota Details</div><div class="quota-group"><div class="quota-group-title">Nested</div>
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 50-60 yr</td>
-                                <td class="quota-number" style="text-align: right;">18</td>
-                                <td class="quota-number" style="text-align: right;">50</td>
-                                <td class="quota-number" style="text-align: right;">36.0%</td>
-                                <td class="quota-number" style="text-align: right;">50</td>
-                                <td class="quota-number" style="text-align: right;">32</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 50-60 yr">Male, 50-60 yr</td>
+                                    <td class="quota-number">18</td>
+                                    <td class="quota-number">50</td>
+                                    <td class="quota-number quota-progress-cell">36.0%</td>
+                                    <td class="quota-number">50</td>
+                                    <td class="quota-number">32</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">42</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">27.6%</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">110</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 40-49 yr">Male, 40-49 yr</td>
+                                    <td class="quota-number">42</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number quota-progress-cell">27.6%</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number">110</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">30</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">19.7%</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">122</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 30-39 yr">Male, 30-39 yr</td>
+                                    <td class="quota-number">30</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number quota-progress-cell">19.7%</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number">122</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 26-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">4</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">15.4%</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">22</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 26-29 yr">Male, 26-29 yr</td>
+                                    <td class="quota-number">4</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number quota-progress-cell">15.4%</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">22</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Male, 21-25 yr</td>
-                                <td class="quota-number" style="text-align: right;">5</td>
-                                <td class="quota-number" style="text-align: right;">11</td>
-                                <td class="quota-number" style="text-align: right;">45.5%</td>
-                                <td class="quota-number" style="text-align: right;">11</td>
-                                <td class="quota-number" style="text-align: right;">6</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Male, 21-25 yr">Male, 21-25 yr</td>
+                                    <td class="quota-number">5</td>
+                                    <td class="quota-number">11</td>
+                                    <td class="quota-number quota-progress-cell">45.5%</td>
+                                    <td class="quota-number">11</td>
+                                    <td class="quota-number">6</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 50-60 yr</td>
-                                <td class="quota-number" style="text-align: right;">17</td>
-                                <td class="quota-number" style="text-align: right;">50</td>
-                                <td class="quota-number" style="text-align: right;">34.0%</td>
-                                <td class="quota-number" style="text-align: right;">50</td>
-                                <td class="quota-number" style="text-align: right;">33</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 50-60 yr">Female, 50-60 yr</td>
+                                    <td class="quota-number">17</td>
+                                    <td class="quota-number">50</td>
+                                    <td class="quota-number quota-progress-cell">34.0%</td>
+                                    <td class="quota-number">50</td>
+                                    <td class="quota-number">33</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 40-49 yr</td>
-                                <td class="quota-number" style="text-align: right;">49</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">32.2%</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">103</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 40-49 yr">Female, 40-49 yr</td>
+                                    <td class="quota-number">49</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number quota-progress-cell">32.2%</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number">103</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 30-39 yr</td>
-                                <td class="quota-number" style="text-align: right;">33</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">21.7%</td>
-                                <td class="quota-number" style="text-align: right;">152</td>
-                                <td class="quota-number" style="text-align: right;">119</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 30-39 yr">Female, 30-39 yr</td>
+                                    <td class="quota-number">33</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number quota-progress-cell">21.7%</td>
+                                    <td class="quota-number">152</td>
+                                    <td class="quota-number">119</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 26-29 yr</td>
-                                <td class="quota-number" style="text-align: right;">6</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">23.1%</td>
-                                <td class="quota-number" style="text-align: right;">26</td>
-                                <td class="quota-number" style="text-align: right;">20</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 26-29 yr">Female, 26-29 yr</td>
+                                    <td class="quota-number">6</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number quota-progress-cell">23.1%</td>
+                                    <td class="quota-number">26</td>
+                                    <td class="quota-number">20</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                            <tr>
-                                <td class="quota-name-cell">Female, 21-25 yr</td>
-                                <td class="quota-number" style="text-align: right;">1</td>
-                                <td class="quota-number" style="text-align: right;">11</td>
-                                <td class="quota-number" style="text-align: right;">9.1%</td>
-                                <td class="quota-number" style="text-align: right;">11</td>
-                                <td class="quota-number" style="text-align: right;">10</td>
-                                <td class="quota-number" style="text-align: right;">0</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="Female, 21-25 yr">Female, 21-25 yr</td>
+                                    <td class="quota-number">1</td>
+                                    <td class="quota-number">11</td>
+                                    <td class="quota-number quota-progress-cell">9.1%</td>
+                                    <td class="quota-number">11</td>
+                                    <td class="quota-number">10</td>
+                                    <td class="quota-number">0</td>
+                                </tr>
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 </div>
                 </div>
             </div>

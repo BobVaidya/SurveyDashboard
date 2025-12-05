@@ -265,34 +265,48 @@ def generate_html(surveys, quotas_data):
             letter-spacing: 0.5px;
         }}
         
+        .quota-table-wrapper {{
+            overflow-x: auto;
+            margin-top: 12px;
+        }}
+        
         .quota-table {{
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 6px;
-            overflow: hidden;
-            font-size: 12px;
+            font-size: 11px;
+            min-width: 600px;
         }}
         
         .quota-table thead {{
-            background: #f8fafc;
+            background: #f1f5f9;
         }}
         
         .quota-table th {{
-            padding: 10px 12px;
+            padding: 8px 10px;
             text-align: left;
             font-weight: 600;
             color: #475569;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
+            white-space: nowrap;
+        }}
+        
+        .quota-table th:not(:first-child) {{
+            text-align: right;
         }}
         
         .quota-table td {{
-            padding: 10px 12px;
+            padding: 8px 10px;
             color: #1e293b;
             border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+        }}
+        
+        .quota-table td:not(:first-child) {{
+            text-align: right;
         }}
         
         .quota-table tbody tr:hover {{
@@ -304,13 +318,23 @@ def generate_html(surveys, quotas_data):
         }}
         
         .quota-name-cell {{
-            font-weight: 600;
+            font-weight: 500;
             color: #1e293b;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }}
         
         .quota-number {{
-            font-family: 'Courier New', monospace;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
             color: #475569;
+            font-size: 11px;
+        }}
+        
+        .quota-progress-cell {{
+            color: #2563eb;
+            font-weight: 600;
         }}
         
         .empty {{
@@ -336,6 +360,73 @@ def generate_html(surveys, quotas_data):
             
             .metric {{
                 text-align: left;
+            }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .container {{
+                padding: 20px 12px;
+            }}
+            
+            .header h1 {{
+                font-size: 22px;
+            }}
+            
+            .active-surveys-count {{
+                padding: 20px 16px;
+            }}
+            
+            .active-surveys-count .value {{
+                font-size: 28px;
+            }}
+            
+            .survey-row {{
+                padding: 16px 12px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }}
+            
+            .survey-name {{
+                font-size: 14px;
+            }}
+            
+            .metric {{
+                text-align: left;
+                font-size: 13px;
+            }}
+            
+            .metric-label {{
+                font-size: 10px;
+            }}
+            
+            .quota-table-wrapper {{
+                margin: 0 -12px;
+                padding: 0 12px;
+            }}
+            
+            .quota-table {{
+                font-size: 10px;
+                min-width: 500px;
+            }}
+            
+            .quota-table th,
+            .quota-table td {{
+                padding: 6px 8px;
+                font-size: 10px;
+            }}
+        }}
+        
+        @media (max-width: 480px) {{
+            .header-bar {{
+                padding: 24px 0;
+            }}
+            
+            .header h1 {{
+                font-size: 18px;
+            }}
+            
+            .quota-table {{
+                min-width: 400px;
             }}
         }}
     </style>
@@ -380,17 +471,28 @@ def generate_html(surveys, quotas_data):
             title = survey.get('title', 'Untitled Survey')
             cpi = survey.get('cpi', 0)
             cost = survey.get('currentCost', 0)
-            loi = survey.get('loi', 0)
-            incidence = survey.get('incidence', 0)
+            
+            # Get LOI - check multiple possible fields
+            raw_data = survey.get('_raw', {})
+            loi = survey.get('loi', 0) or raw_data.get('expected_loi', 0) or raw_data.get('loi', 0) or raw_data.get('length_of_interview', 0)
+            
+            # Get IR - check multiple possible fields
+            incidence = survey.get('incidence', 0) or raw_data.get('expected_ir', 0) or raw_data.get('current_incidence', 0) or raw_data.get('incidence_rate', 0)
             
             # Format LOI (Length of Interview) - usually in minutes
-            loi_display = f"{loi:.1f} min" if loi > 0 else "N/A"
+            if loi and loi > 0:
+                loi_display = f"{loi:.1f} min"
+            else:
+                loi_display = "N/A"
             
-            # Format IR (Incidence Rate) - check if already percentage or decimal
-            if incidence > 0:
-                if incidence > 1:
+            # Format IR (Incidence Rate) - handle different formats
+            if incidence and incidence > 0:
+                if incidence > 1 and incidence <= 100:
                     # Already a percentage (e.g., 75 means 75%)
                     ir_display = f"{incidence:.1f}%"
+                elif incidence > 100:
+                    # Might be in basis points or wrong format, divide by 100
+                    ir_display = f"{incidence / 100:.1f}%"
                 else:
                     # Decimal format (e.g., 0.75 means 75%)
                     ir_display = f"{incidence * 100:.1f}%"
@@ -442,19 +544,20 @@ def generate_html(surveys, quotas_data):
                     html += f'<div class="quota-group">'
                     html += f'<div class="quota-group-title">{group_name}</div>'
                     html += '''
-                    <table class="quota-table">
-                        <thead>
-                            <tr>
-                                <th>Quota Name</th>
-                                <th style="text-align: right;">Fielded</th>
-                                <th style="text-align: right;">Goal</th>
-                                <th style="text-align: right;">Progress</th>
-                                <th style="text-align: right;">Target</th>
-                                <th style="text-align: right;">Open</th>
-                                <th style="text-align: right;">In Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="quota-table-wrapper">
+                        <table class="quota-table">
+                            <thead>
+                                <tr>
+                                    <th>Quota</th>
+                                    <th>Fielded</th>
+                                    <th>Goal</th>
+                                    <th>Progress</th>
+                                    <th>Target</th>
+                                    <th>Open</th>
+                                    <th>In Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 '''
                     
                     for quota in group_quotas:
@@ -467,20 +570,21 @@ def generate_html(surveys, quotas_data):
                         in_progress = quota.get('in_progress', 0)
                         
                         html += f"""
-                            <tr>
-                                <td class="quota-name-cell">{name}</td>
-                                <td class="quota-number" style="text-align: right;">{fielded:,}</td>
-                                <td class="quota-number" style="text-align: right;">{goal:,}</td>
-                                <td class="quota-number" style="text-align: right;">{quota_progress:.1f}%</td>
-                                <td class="quota-number" style="text-align: right;">{current_target:,}</td>
-                                <td class="quota-number" style="text-align: right;">{currently_open:,}</td>
-                                <td class="quota-number" style="text-align: right;">{in_progress:,}</td>
-                            </tr>
+                                <tr>
+                                    <td class="quota-name-cell" title="{name}">{name}</td>
+                                    <td class="quota-number">{fielded:,}</td>
+                                    <td class="quota-number">{goal:,}</td>
+                                    <td class="quota-number quota-progress-cell">{quota_progress:.1f}%</td>
+                                    <td class="quota-number">{current_target:,}</td>
+                                    <td class="quota-number">{currently_open:,}</td>
+                                    <td class="quota-number">{in_progress:,}</td>
+                                </tr>
 """
                     
                     html += '''
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
 '''
                     html += '</div>'
             else:
