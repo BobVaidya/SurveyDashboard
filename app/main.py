@@ -7,7 +7,7 @@ import json
 from typing import Any, Dict
 
 from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from dotenv import load_dotenv
 
 from botbuilder.core import TurnContext
@@ -18,6 +18,7 @@ from .bot import SurveyBot
 from .models import PureSpectrumEvent, format_event_as_text
 from .storage import SubscriptionStore
 from .scraper import PureSpectrumScraper
+from .web_dashboard import dashboard_home, get_surveys, get_quotas
 
 
 load_dotenv()
@@ -32,6 +33,25 @@ bot = SurveyBot(store, adapter)
 @app.get("/healthz")
 async def healthz():
 	return PlainTextResponse("ok")
+
+
+# Web Dashboard Routes
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+	"""Web dashboard for survey monitoring"""
+	return await dashboard_home()
+
+
+@app.get("/api/surveys")
+async def api_surveys():
+	"""API endpoint to get all live surveys"""
+	return await get_surveys()
+
+
+@app.get("/api/quotas/{survey_id}")
+async def api_quotas(survey_id: str):
+	"""API endpoint to get quotas for a specific survey"""
+	return await get_quotas(survey_id)
 
 
 @app.post("/api/messages")
