@@ -4,6 +4,7 @@ Web dashboard for monitoring survey status and quotas
 """
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, HTMLResponse
 from dotenv import load_dotenv
 
@@ -12,6 +13,15 @@ from .web_dashboard import dashboard_home, get_surveys, get_quotas
 load_dotenv()
 
 app = FastAPI(title="Survey Dashboard")
+
+# Enable CORS for GitHub Pages and other origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (can restrict to specific domains)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/healthz")
