@@ -6,7 +6,7 @@ Web dashboard for monitoring PureSpectrum survey status and quotas.
 
 The dashboard is live at:
 ```
-https://teamspschat.onrender.com/dashboard
+https://bobvaidya.github.io/SurveyDashboard/
 ```
 
 ## Features
@@ -41,4 +41,4 @@ Visit: http://localhost:8000/dashboard
 
 ## Deployment
 
-Deployed on Render.com - automatically deploys from GitHub.
+Hosted on GitHub Pages - automatically updates when you push to main branch.
