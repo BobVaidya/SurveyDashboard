@@ -22,12 +22,29 @@ class PureSpectrumScraper:
         self.last_known_data = {}
         
     def _load_auth(self) -> Dict:
-        """Load saved auth token from file"""
+        """Load saved auth token from environment variables or file"""
+        import os
+        
+        # First, try environment variables (for Render/Heroku deployment)
+        token = os.getenv("PURESPECTRUM_TOKEN")
+        user_id = os.getenv("PURESPECTRUM_USER_ID")
+        company_id = os.getenv("PURESPECTRUM_COMPANY_ID")
+        
+        if token:
+            auth_data = {
+                "token": token,
+                "user_id": user_id or "",
+                "company_id": company_id or ""
+            }
+            logger.info("✅ Loaded authentication token from environment variables")
+            return auth_data
+        
+        # Fallback to file (for local development)
         if self.auth_file.exists():
             try:
                 with open(self.auth_file, 'r') as f:
                     auth_data = json.load(f)
-                    logger.info("✅ Loaded saved authentication token")
+                    logger.info("✅ Loaded saved authentication token from file")
                     return auth_data
             except Exception as e:
                 logger.error(f"Failed to load auth: {e}")
